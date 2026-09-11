@@ -67,10 +67,17 @@ Import the repository into Vercel. The included `vercel.json` builds the
 ### Render backend
 
 Create a Web Service from the repository. The included `render.yaml` runs the
-database migration, builds the API, starts it, and checks `/health`. Set the
+Prisma Client generation, database migration, builds the API, starts it, and checks `/health`. Set the
 secret values marked `sync: false` in Render. Set `FRONTEND_URL` to the final
 Vercel URL, then add that Vercel domain to Firebase Authentication's authorized
 domains.
+
+If Render's Root Directory is `apps/api`, use these commands instead:
+
+```bash
+pnpm install --frozen-lockfile && pnpm db:deploy && pnpm build
+pnpm start
+```
 
 ## Project Structure
 

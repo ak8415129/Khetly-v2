@@ -2,7 +2,7 @@ services:
   - type: web
     name: khetly-api
     runtime: node
-    buildCommand: pnpm install --frozen-lockfile && pnpm db:deploy && pnpm --filter api build
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter api prisma generate && pnpm db:deploy && pnpm --filter api build
     startCommand: pnpm --filter api start
     healthCheckPath: /health
     envVars:
