@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { apiClient } from '@lib/api-client'
@@ -16,18 +16,33 @@ import { Avatar } from '@components/ui/Avatar'
 import { Button } from '@components/ui/Button'
 import { formatINR } from '@khetly/utils'
 import { ADDON_META, SEASON_LABELS, LAND_TYPE_LABELS } from '@lib/utils'
+import { useAuthStore } from '@modules/auth/auth.store'
+import { AuthModal } from '@components/auth/AuthModal'
 
 export default function ListingDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const { data: listing, isLoading, isError } = useListing(id ?? '')
 
   const [enquireOpen, setEnquireOpen] = useState(false)
+  const [authOpen, setAuthOpen] = useState(false)
   const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]
   const [startDate, setStartDate] = useState(tomorrow)
   const [durationMonths, setDurationMonths] = useState<number>(1)
   const [notes, setNotes] = useState('')
   const [selectedAddons, setSelectedAddons] = useState<string[]>([])
+
+  function handleEnquire() {
+    if (!isAuthenticated) {
+      setAuthOpen(true)
+      return
+    }
+
+    setDurationMonths(listing?.minRentalMonths || 1)
+    setEnquireOpen(true)
+  }
 
   const bookingMutation = useMutation({
     mutationFn: async () => {
@@ -111,10 +126,7 @@ export default function ListingDetailPage() {
         </div>
         <Button
           variant="primary"
-          onClick={() => {
-            setDurationMonths(listing.minRentalMonths || 1)
-            setEnquireOpen(true)
-          }}
+          onClick={handleEnquire}
         >
           Enquire now
         </Button>
@@ -228,10 +240,7 @@ export default function ListingDetailPage() {
         <Button
           variant="primary"
           fullWidth
-          onClick={() => {
-            setDurationMonths(listing.minRentalMonths || 1)
-            setEnquireOpen(true)
-          }}
+          onClick={handleEnquire}
         >
           Enquire — {formatINR(listing.pricePerMonth)}/month
         </Button>
@@ -337,6 +346,12 @@ export default function ListingDetailPage() {
           </Modal.Footer>
         </div>
       </Modal>
+
+      <AuthModal
+        open={authOpen}
+        onClose={() => setAuthOpen(false)}
+        returnTo={location.pathname}
+      />
     </div>
   )
 }

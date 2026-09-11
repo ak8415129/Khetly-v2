@@ -44,6 +44,12 @@ export default function App() {
             <Route path="/login" element={<GoogleLoginPage />} />
           </Route>
 
+          {/* ── Public discovery — visitors can browse before signing in ── */}
+          <Route element={<AppShell />}>
+            <Route path="/explore" element={<ExplorePage />} />
+            <Route path="/listings/:id" element={<ListingDetailPage />} />
+          </Route>
+
           {/* ── Profile completion — any authenticated user, profile not yet done ── */}
           <Route element={<ProtectedRoute />}>
             <Route path="/complete-profile" element={<CompleteProfilePage />} />
@@ -53,8 +59,6 @@ export default function App() {
           {/* ── Renter routes ── */}
           <Route element={<ProtectedRoute allowedRoles={['RENTER']} />}>
             <Route element={<AppShell />}>
-              <Route path="/explore" element={<ExplorePage />} />
-              <Route path="/listings/:id" element={<ListingDetailPage />} />
               <Route path="/my-bookings" element={<BookingsPage />} />
               <Route path="/dashboard" element={<RenterDashboard />} />
               <Route path="/ai-assistant" element={<AiChatPage />} />
@@ -72,8 +76,6 @@ export default function App() {
               <Route path="/farmer/bookings" element={<FarmerBookingsPage />} />
               <Route path="/farmer/ai" element={<FarmerAiPage />} />
               <Route path="/farmer/profile" element={<FarmerProfilePage />} />
-              {/* Farmers can also browse listings like renters */}
-              <Route path="/listings/:id" element={<ListingDetailPage />} />
             </Route>
           </Route>
 
@@ -90,8 +92,8 @@ export default function App() {
           </Route>
 
           {/* ── Fallback ── */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="/" element={<Navigate to="/explore" replace />} />
+          <Route path="*" element={<Navigate to="/explore" replace />} />
         </Routes>
       </Suspense>
     </ErrorBoundary>

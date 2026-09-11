@@ -2,7 +2,7 @@ import { useLocation } from 'react-router-dom'
 import { Leaf, Bell } from 'lucide-react'
 import { useAuthStore } from '@modules/auth/auth.store'
 import { Avatar } from '@components/ui/Avatar'
-import { NavLink } from 'react-router-dom'
+import { NavLink, Link } from 'react-router-dom'
 
 const PAGE_TITLES: Record<string, string> = {
   '/explore': 'Explore',
@@ -36,6 +36,15 @@ export function TopNav() {
       </div>
 
       <div className="flex items-center gap-2">
+        {!user && (
+          <Link
+            to="/explore?auth=farmer"
+            state={{ intent: 'farmer' }}
+            className="text-xs font-medium text-brand-700 hover:text-brand-900"
+          >
+            Rent as farmer
+          </Link>
+        )}
         <button className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 relative">
           <Bell className="w-5 h-5" />
           {/* Unread dot */}

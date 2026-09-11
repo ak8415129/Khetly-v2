@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { authService } from './auth.service'
 import { useAuthStore } from './auth.store'
@@ -10,9 +10,10 @@ export const authKeys = {
 }
 
 // ─── Google Sign-In ───────────────────────────────────────────────────────────
-export function useGoogleSignIn() {
+export function useGoogleSignIn(options?: { intent?: 'farmer' | 'renter'; returnTo?: string }) {
   const setUser = useAuthStore((s) => s.setUser)
   const navigate = useNavigate()
+  const location = useLocation()
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -32,13 +33,26 @@ export function useGoogleSignIn() {
       queryClient.setQueryData(authKeys.me, user)
 
       if (needsProfileCompletion) {
-        navigate('/complete-profile', { replace: true })
+        navigate('/complete-profile', {
+          replace: true,
+          state: {
+            from: options?.returnTo
+              ? { pathname: options.returnTo }
+              : (location.state as { from?: unknown } | null)?.from,
+            intent: options?.intent ?? (location.state as { intent?: 'farmer' | 'renter' } | null)?.intent,
+          },
+        })
         return
       }
 
       toast.success(`Welcome${user.name ? `, ${user.name}` : ''}! 🌾`)
 
-      if (user.role === 'ADMIN') {
+      const returnPath = options?.returnTo
+        ? { pathname: options.returnTo }
+        : (location.state as { from?: { pathname?: string; search?: string; hash?: string } } | null)?.from
+      if (returnPath?.pathname && returnPath.pathname !== '/login') {
+        navigate(`${returnPath.pathname}${returnPath.search ?? ''}${returnPath.hash ?? ''}`, { replace: true })
+      } else if (user.role === 'ADMIN') {
         navigate('/admin/dashboard', { replace: true })
       } else if (user.role === 'FARMER') {
         navigate('/farmer/dashboard', { replace: true })
@@ -60,6 +74,7 @@ export function useGoogleSignIn() {
 export function useCompleteProfile() {
   const setUser = useAuthStore((s) => s.setUser)
   const navigate = useNavigate()
+  const location = useLocation()
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -72,6 +87,9 @@ export function useCompleteProfile() {
 
       if (user.role === 'FARMER') {
         navigate('/farmer/onboarding', { replace: true })
+      } else if ((location.state as { from?: { pathname?: string; search?: string; hash?: string } } | null)?.from?.pathname) {
+        const from = (location.state as { from: { pathname: string; search?: string; hash?: string } }).from
+        navigate(`${from.pathname}${from.search ?? ''}${from.hash ?? ''}`, { replace: true })
       } else {
         navigate('/explore', { replace: true })
       }

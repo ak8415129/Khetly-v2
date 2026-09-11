@@ -1,65 +1,76 @@
-import { Leaf } from 'lucide-react'
+import { ArrowLeft, Check, Leaf, Tractor } from 'lucide-react'
+import { Link, useLocation } from 'react-router-dom'
 import { useGoogleSignIn } from '@modules/auth/auth.hooks'
 
 export default function GoogleLoginPage() {
   const googleSignIn = useGoogleSignIn()
+  const location = useLocation()
+  const state = location.state as { intent?: 'farmer' | 'renter'; from?: unknown } | null
+  const isFarmerIntent = state?.intent === 'farmer'
+  const backPath = (state?.from as { pathname?: string } | undefined)?.pathname ?? '/explore'
 
   return (
-    <div className="min-h-screen flex bg-white">
-      {/* Left branding panel — desktop only */}
-      <div className="hidden lg:flex w-[480px] flex-shrink-0 bg-brand-50 flex-col justify-between p-14">
-        <div className="flex items-center gap-2.5">
-          <Leaf className="w-6 h-6 text-brand-600" />
-          <span className="font-serif text-2xl font-medium text-brand-800">Khetly</span>
-        </div>
+    <div className="min-h-screen bg-[#f7f8f3] px-4 py-5 sm:px-8 sm:py-8">
+      <div className="mx-auto flex min-h-[calc(100vh-2.5rem)] max-w-6xl overflow-hidden rounded-3xl bg-white shadow-[0_24px_80px_rgba(36,55,29,0.12)]">
+        <div className="hidden w-[46%] flex-col justify-between bg-brand-800 p-12 text-white lg:flex">
+          <Link to={backPath} className="flex items-center gap-2.5 text-white">
+            <Leaf className="h-6 w-6 text-brand-200" />
+            <span className="font-serif text-2xl font-medium">Khetly</span>
+          </Link>
 
-        <div>
-          <h1 className="font-serif text-[40px] leading-[1.2] text-brand-900 mb-5">
-            Rent real land.<br />Grow real food.
-          </h1>
-          <p className="text-brand-700 text-base leading-relaxed mb-10 max-w-[320px]">
-            Connect directly with verified farmers near you. Choose your crop,
-            track your yield — fresh produce at harvest.
-          </p>
-
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { value: '2,400+', label: 'Verified farmers' },
-              { value: '8,000+', label: 'Active plots' },
-              { value: '< 5 km', label: 'Avg distance' },
-              { value: '40+', label: 'Crops available' },
-            ].map(({ value, label }) => (
-              <div key={label} className="bg-white/70 rounded-xl p-4">
-                <div className="text-xl font-semibold text-brand-600">{value}</div>
-                <div className="text-sm text-brand-800 mt-0.5">{label}</div>
-              </div>
-            ))}
+          <div>
+            <p className="mb-4 text-sm font-medium uppercase tracking-[0.18em] text-brand-200">
+              {isFarmerIntent ? 'For landowners' : 'For modern growers'}
+            </p>
+            <h1 className="max-w-md font-serif text-5xl leading-[1.08]">
+              {isFarmerIntent ? 'Turn your land into opportunity.' : 'Rent real land. Grow real food.'}
+            </h1>
+            <p className="mt-6 max-w-sm text-base leading-relaxed text-brand-100">
+              {isFarmerIntent
+                ? 'Create a trusted listing, meet serious renters, and grow your farm income with Khetly.'
+                : 'Discover verified farmland near you and plan your next growing season with confidence.'}
+            </p>
+            <div className="mt-10 space-y-3 text-sm text-brand-100">
+              {['Google sign-in in one step', 'Verified farmer network', 'Clear rental details'].map((item) => (
+                <div key={item} className="flex items-center gap-2.5">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-600">
+                    <Check className="h-3 w-3" />
+                  </span>
+                  {item}
+                </div>
+              ))}
+            </div>
           </div>
+
+          <p className="text-xs text-brand-200">Khetly · Better land access for everyone</p>
         </div>
 
-        <p className="text-xs text-brand-600 opacity-60">
-          Khetly — Empowering Indian farmers since 2024
-        </p>
-      </div>
+        <div className="flex flex-1 flex-col justify-center px-6 py-10 sm:px-12 lg:px-16">
+          <Link to={backPath} className="mb-12 flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900">
+            <ArrowLeft className="h-4 w-4" /> Back to listings
+          </Link>
 
-      {/* Right panel — sign in */}
-      <div className="flex-1 flex flex-col justify-center items-center px-6 py-12 lg:px-12">
-        <div className="w-full max-w-[360px] text-center">
-          {/* Mobile logo */}
-          <div className="flex items-center justify-center gap-2 mb-10 lg:hidden">
-            <Leaf className="w-5 h-5 text-brand-600" />
+          <div className="mb-10 flex items-center gap-2 lg:hidden">
+            <Leaf className="h-5 w-5 text-brand-600" />
             <span className="font-serif text-xl text-brand-800">Khetly</span>
           </div>
 
-          <h2 className="text-2xl font-medium text-gray-900 mb-2">Welcome to Khetly</h2>
-          <p className="text-sm text-gray-500 mb-10">
-            Sign in with your Google account to get started — no passwords, no OTP.
+          <div className="mb-8 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-700">
+            {isFarmerIntent ? <Tractor className="h-6 w-6" /> : <Leaf className="h-6 w-6" />}
+          </div>
+          <h2 className="text-3xl font-medium tracking-tight text-gray-900">
+            {isFarmerIntent ? 'Start renting out your land' : 'Welcome to Khetly'}
+          </h2>
+          <p className="mt-3 max-w-md text-sm leading-relaxed text-gray-500">
+            {isFarmerIntent
+              ? 'Sign in to begin your farmer profile and listing setup. It only takes a few minutes.'
+              : 'Sign in to send enquiries and manage your farmland journey. Browsing stays open to everyone.'}
           </p>
 
           <button
             onClick={() => googleSignIn.mutate()}
             disabled={googleSignIn.isPending}
-            className="w-full h-13 flex items-center justify-center gap-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors disabled:opacity-60"
+            className="mt-8 flex h-13 w-full items-center justify-center gap-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 transition-colors hover:border-gray-300 hover:bg-gray-50 disabled:opacity-60"
           >
             {googleSignIn.isPending ? (
               <span className="w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
@@ -69,7 +80,7 @@ export default function GoogleLoginPage() {
             {googleSignIn.isPending ? 'Signing in…' : 'Continue with Google'}
           </button>
 
-          <p className="mt-8 text-xs text-gray-400 leading-relaxed">
+          <p className="mt-8 text-xs leading-relaxed text-gray-400">
             By continuing, you agree to Khetly's{' '}
             <a href="/terms" className="text-brand-600 hover:underline">Terms</a>{' '}
             and{' '}

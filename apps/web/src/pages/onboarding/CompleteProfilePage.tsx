@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -18,7 +19,9 @@ type Form = z.infer<typeof schema>
 
 export default function CompleteProfilePage() {
   const user = useAuthStore((s) => s.user)
-  const [role, setRole] = useState<'RENTER' | 'FARMER'>('RENTER')
+  const location = useLocation()
+  const loginIntent = (location.state as { intent?: 'farmer' | 'renter' } | null)?.intent
+  const [role, setRole] = useState<'RENTER' | 'FARMER'>(loginIntent === 'farmer' ? 'FARMER' : 'RENTER')
   const completeProfile = useCompleteProfile()
 
   const { register, handleSubmit, formState: { errors } } = useForm<Form>({

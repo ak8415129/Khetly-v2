@@ -19,9 +19,13 @@ const FARMER_TABS = [
   { to: '/farmer/ai', icon: Sprout, label: 'AI' },
 ]
 
+const PUBLIC_TABS = [
+  { to: '/explore', icon: Map, label: 'Explore' },
+]
+
 export function BottomNav() {
   const role = useAuthStore((s) => s.user?.role)
-  const tabs = role === 'FARMER' ? FARMER_TABS : RENTER_TABS
+  const tabs = !role ? PUBLIC_TABS : role === 'FARMER' ? FARMER_TABS : RENTER_TABS
 
   return (
     <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-gray-100 flex items-stretch h-16 safe-area-pb">

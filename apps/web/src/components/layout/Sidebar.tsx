@@ -27,11 +27,15 @@ const FARMER_NAV: NavItem[] = [
   { to: '/farmer/profile', icon: <User className="w-5 h-5" />, label: 'Profile' },
 ]
 
+const PUBLIC_NAV: NavItem[] = [
+  { to: '/explore', icon: <Map className="w-5 h-5" />, label: 'Explore farmland' },
+]
+
 export function Sidebar() {
   const user = useAuthStore((s) => s.user)
   const logout = useLogout()
   const isFarmer = user?.role === 'FARMER'
-  const navItems = isFarmer ? FARMER_NAV : RENTER_NAV
+  const navItems = !user ? PUBLIC_NAV : isFarmer ? FARMER_NAV : RENTER_NAV
 
   return (
     <aside className="hidden lg:flex fixed inset-y-0 left-0 w-64 flex-col bg-white border-r border-gray-100 z-30">
@@ -49,6 +53,15 @@ export function Sidebar() {
         {navItems.map((item) => (
           <SidebarLink key={item.to} {...item} />
         ))}
+        {!user && (
+          <NavLink
+            to="/explore?auth=farmer"
+            state={{ intent: 'farmer' }}
+            className="mt-4 flex items-center justify-center rounded-lg bg-brand-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-brand-800 transition-colors"
+          >
+            Rent land as a farmer
+          </NavLink>
+        )}
       </nav>
 
       {user && (
