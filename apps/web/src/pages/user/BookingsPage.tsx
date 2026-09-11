@@ -10,7 +10,7 @@ import type { Booking } from '@khetly/types'
 function useMyBookings() {
   return useQuery({
     queryKey: ['bookings', 'mine'],
-    queryFn: () => apiClient.get<Booking[]>('/bookings/mine') as Promise<Booking[]>,
+    queryFn: () => apiClient.get<Booking[]>('/bookings/mine'),
   })
 }
 
