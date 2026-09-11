@@ -1,0 +1,277 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  RENTER
+  FARMER
+  ADMIN
+}
+
+enum VerificationStatus {
+  PENDING
+  IN_REVIEW
+  VERIFIED
+  REJECTED
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum ListingStatus {
+  DRAFT
+  PENDING_REVIEW
+  ACTIVE
+  PAUSED
+  ARCHIVED
+  REJECTED
+}
+
+enum BookingStatus {
+  ENQUIRY
+  CONFIRMED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  DISPUTED
+}
+
+enum HarvestSeason {
+  RABI
+  KHARIF
+  ZAID
+  YEAR_ROUND
+}
+
+enum LandType {
+  IRRIGATED_CANAL
+  IRRIGATED_BOREWELL
+  RAINFED
+  ORCHARD
+}
+
+enum SoilType {
+  SANDY_LOAM
+  CLAY_LOAM
+  BLACK_COTTON
+  RED_LATERITE
+  ALLUVIAL
+  UNKNOWN
+}
+
+enum LogisticsOption {
+  DOORSTEP_DELIVERY
+  FARM_PICKUP
+  MANDI_DROP
+  COURIER
+}
+
+enum AddonType {
+  FARM_VIDEO
+  FARM_VISIT
+  TREE_RENTAL
+  HOMEMADE_PRODUCTS
+  HARVEST_BOX
+  HARVEST_PHOTOS
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
+}
+
+model User {
+  id                String    @id @default(uuid())
+  firebaseUid       String    @unique          // Firebase Auth UID
+  email             String    @unique
+  phone             String?                    // optional now — collected later if needed
+  role              UserRole  @default(RENTER)
+  name              String    @default("")
+  avatarUrl         String?
+  preferredLanguage String    @default("en")
+  isVerified        Boolean   @default(true)    // Google-verified email = trusted
+  profileCompleted  Boolean   @default(false)   // has picked role + filled basic info
+  isActive          Boolean   @default(true)    // admin can deactivate accounts
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  farmerProfile FarmerProfile?
+  bookings      Booking[]      @relation("RenterBookings")
+  reviews       Review[]       @relation("ReviewerReviews")
+  adminActions  AdminAction[]  @relation("AdminActor")
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model FarmerProfile {
+  id                 String             @id @default(uuid())
+  userId             String             @unique
+  bio                String             @default("")
+  village            String             @default("")
+  tehsil             String             @default("")
+  district           String             @default("")
+  state              String             @default("")
+  pincode            String             @default("")
+  experienceYears    Int                @default(0)
+  aadhaarVerified    Boolean            @default(false)
+  bankVerified       Boolean            @default(false)
+  verificationStatus VerificationStatus @default(PENDING)
+  bankAccountNumber  String?
+  ifscCode           String?
+  accountHolderName  String?
+  upiId              String?
+  rating             Float              @default(0)
+  reviewCount        Int                @default(0)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listings LandListing[]
+  bookings Booking[]     @relation("FarmerBookings")
+
+  @@map("farmer_profiles")
+}
+
+model LandListing {
+  id              String            @id @default(uuid())
+  farmerId        String
+  title           String
+  description     String            @default("")
+  landType        LandType
+  soilType        SoilType          @default(UNKNOWN)
+  plotSizeAcres   Float
+  village         String
+  tehsil          String
+  district        String
+  state           String
+  pincode         String
+  lat             Float
+  lng             Float
+  primaryCrop     String
+  seedVariety     String
+  harvestSeason   HarvestSeason
+  yieldMin        Float
+  yieldMax        Float
+  yieldUnit       String            @default("quintal/acre")
+  priceMin        Float
+  priceMax        Float
+  priceUnit       String            @default("per quintal")
+  fertilizerPlan  String            @default("")
+  pesticidePlan   String            @default("")
+  riskLevel       RiskLevel         @default(LOW)
+  riskDescription String            @default("")
+  logistics       LogisticsOption[]
+  addons          AddonType[]
+  pricePerMonth   Float
+  minRentalMonths Int               @default(1)
+  status          ListingStatus     @default(DRAFT)
+  rejectionReason String?                          // admin's reason if rejected
+  photos          String[]
+  videoUrl        String?
+  viewCount       Int               @default(0)
+  bookingCount    Int               @default(0)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  farmer   FarmerProfile @relation(fields: [farmerId], references: [id])
+  bookings Booking[]
+  reviews  Review[]
+
+  @@index([lat, lng])
+  @@index([status])
+  @@index([farmerId])
+  @@map("land_listings")
+}
+
+model Booking {
+  id                 String        @id @default(uuid())
+  listingId          String
+  renterId           String
+  farmerId           String
+  status             BookingStatus @default(ENQUIRY)
+  startDate          DateTime
+  endDate            DateTime
+  durationMonths     Int
+  totalAmount        Float
+  platformFeePercent Float         @default(8)
+  platformFee        Float
+  farmerReceives     Float
+  selectedAddons     AddonType[]
+  notes              String?
+  payoutStatus       PayoutStatus  @default(PENDING)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  listing LandListing   @relation(fields: [listingId], references: [id])
+  renter  User          @relation("RenterBookings", fields: [renterId], references: [id])
+  farmer  FarmerProfile @relation("FarmerBookings", fields: [farmerId], references: [id])
+  review  Review?
+
+  @@index([renterId])
+  @@index([farmerId])
+  @@index([listingId])
+  @@map("bookings")
+}
+
+model Review {
+  id                   String      @id @default(uuid())
+  bookingId            String      @unique
+  reviewerId           String
+  listingId            String
+  rating               Int
+  comment              String
+  yieldAccuracy        Int
+  farmerResponsiveness Int
+  valueForMoney        Int
+  createdAt            DateTime    @default(now())
+
+  booking  Booking     @relation(fields: [bookingId], references: [id])
+  reviewer User        @relation("ReviewerReviews", fields: [reviewerId], references: [id])
+  listing  LandListing @relation(fields: [listingId], references: [id])
+
+  @@index([listingId])
+  @@index([reviewerId])
+  @@map("reviews")
+}
+
+// Audit log — every admin action is recorded
+model AdminAction {
+  id          String   @id @default(uuid())
+  adminId     String
+  action      String                          // e.g. "APPROVE_LISTING", "SUSPEND_USER"
+  targetType  String                          // e.g. "LandListing", "User"
+  targetId    String
+  reason      String?
+  createdAt   DateTime @default(now())
+
+  admin User @relation("AdminActor", fields: [adminId], references: [id])
+
+  @@index([adminId])
+  @@index([targetType, targetId])
+  @@map("admin_actions")
+}

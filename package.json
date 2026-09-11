@@ -1,0 +1,40 @@
+{
+  "name": "khetly",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Khetly — farmland rental marketplace",
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "dev:web": "pnpm --filter web dev",
+    "dev:api": "pnpm --filter api dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md}\" --ignore-path .gitignore",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "db:generate": "pnpm --filter api prisma generate",
+    "db:migrate": "pnpm --filter api prisma migrate dev",
+    "db:seed": "pnpm --filter api prisma db seed",
+    "db:studio": "pnpm --filter api prisma studio",
+    "db:reset": "pnpm --filter api prisma migrate reset"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "prettier": "^3.2.5",
+    "prettier-plugin-tailwindcss": "^0.6.0",
+    "typescript": "^5.4.5",
+    "@typescript-eslint/eslint-plugin": "^7.9.0",
+    "@typescript-eslint/parser": "^7.9.0",
+    "eslint": "^9.3.0"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
+}
