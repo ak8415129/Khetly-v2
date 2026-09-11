@@ -1,6 +1,17 @@
 import prisma from '../../lib/prisma'
 import { AppError } from '../../middleware/error.middleware'
 
+type FarmerStatsBooking = { farmerReceives: number; status: string }
+type FarmerBooking = {
+  listing: { id: string; title: string; village: string; district: string; photos: string[]; pricePerMonth: number }
+}
+type FarmerListing = {
+  village: string; tehsil: string; district: string; state: string; pincode: string
+  lat: number; lng: number; primaryCrop: string; seedVariety: string; harvestSeason: string
+  yieldMin: number; yieldMax: number; yieldUnit: string; priceMin: number; priceMax: number
+  priceUnit: string; fertilizerPlan: string; pesticidePlan: string
+}
+
 export async function getOrCreateFarmerProfile(userId: string) {
   let profile = await prisma.farmerProfile.findUnique({ where: { userId }, include: { user: { select: { name: true, phone: true, avatarUrl: true } } } })
   if (!profile) profile = await prisma.farmerProfile.create({ data: { userId }, include: { user: { select: { name: true, phone: true, avatarUrl: true } } } })
@@ -68,14 +79,14 @@ export async function getFarmerStats(userId: string) {
     prisma.landListing.count({ where: { farmerId: profile.id, status: 'ACTIVE' } }),
     prisma.booking.findMany({ where: { farmerId: profile.id }, select: { farmerReceives: true, status: true } }),
   ])
-  return { totalListings, activeListings, totalEarnings: bookings.filter(b => b.status === 'COMPLETED').reduce((s, b) => s + b.farmerReceives, 0), averageRating: profile.rating, totalBookings: bookings.length, pendingBookings: bookings.filter(b => b.status === 'ENQUIRY').length }
+  return { totalListings, activeListings, totalEarnings: bookings.filter((b: FarmerStatsBooking) => b.status === 'COMPLETED').reduce((s: number, b: FarmerStatsBooking) => s + b.farmerReceives, 0), averageRating: profile.rating, totalBookings: bookings.length, pendingBookings: bookings.filter((b: FarmerStatsBooking) => b.status === 'ENQUIRY').length }
 }
 
 export async function getFarmerBookings(userId: string) {
   const profile = await prisma.farmerProfile.findUnique({ where: { userId } })
   if (!profile) return []
   const bookings = await prisma.booking.findMany({ where: { farmerId: profile.id }, include: { listing: { select: { id: true, title: true, village: true, district: true, photos: true, pricePerMonth: true } }, renter: { select: { id: true, name: true, phone: true, avatarUrl: true } } }, orderBy: { createdAt: 'desc' } })
-  return bookings.map((b) => ({
+  return bookings.map((b: FarmerBooking) => ({
     ...b,
     listing: {
       ...b.listing,
@@ -101,7 +112,7 @@ export async function getFarmerListings(userId: string, limit?: number) {
     orderBy: { createdAt: 'desc' },
     ...(limit && { take: limit }),
   })
-  return listings.map((r) => ({
+  return listings.map((r: FarmerListing) => ({
     ...r,
     address: {
       village: r.village,

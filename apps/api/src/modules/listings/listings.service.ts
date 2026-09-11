@@ -11,6 +11,16 @@ export interface SearchParams {
   sortBy?: 'distance' | 'price_asc' | 'price_desc' | 'rating' | 'newest'
 }
 
+type ListingSearchRow = {
+  id: string; farmer: { id: string; verificationStatus: string; rating: number; reviewCount: number; user: { name: string; avatarUrl: string | null } }
+  lat: number; lng: number; primaryCrop: string; seedVariety: string; harvestSeason: string
+  yieldMin: number; yieldMax: number; yieldUnit: string; priceMin: number; priceMax: number
+  priceUnit: string; fertilizerPlan: string; pesticidePlan: string; village: string; tehsil: string
+  district: string; state: string; pincode: string; pricePerMonth: number
+}
+
+type ListingSearchResult = { pricePerMonth: number; distanceKm?: number }
+
 export async function searchListings(params: SearchParams) {
   const { lat, lng, radiusKm, crop, riskLevel, landType, maxPricePerMonth, page = 1, pageSize = 12, sortBy = 'distance' } = params
   const where: Record<string, unknown> = {
@@ -33,7 +43,7 @@ export async function searchListings(params: SearchParams) {
     where,
     include: { farmer: { select: { id: true, verificationStatus: true, rating: true, reviewCount: true, user: { select: { name: true, avatarUrl: true } } } } },
   })
-  let results = rows.map((r) => ({
+  let results: ListingSearchResult[] = rows.map((r: ListingSearchRow) => ({
     ...r,
     farmer: { id: r.farmer.id, name: r.farmer.user.name, avatarUrl: r.farmer.user.avatarUrl ?? undefined, verificationStatus: r.farmer.verificationStatus, rating: r.farmer.rating, reviewCount: r.farmer.reviewCount },
     address: { village: r.village, tehsil: r.tehsil, district: r.district, state: r.state, pincode: r.pincode, geoPoint: { lat: r.lat, lng: r.lng } },
@@ -44,10 +54,10 @@ export async function searchListings(params: SearchParams) {
     results = results.filter((r) => r.distanceKm === undefined || r.distanceKm <= radiusKm)
   }
   if (sortBy === 'distance' && lat && lng) {
-    results.sort((a, b) => (a.distanceKm ?? 99999) - (b.distanceKm ?? 99999))
+    results.sort((a: ListingSearchResult, b: ListingSearchResult) => (a.distanceKm ?? 99999) - (b.distanceKm ?? 99999))
   }
-  if (sortBy === 'price_asc') results.sort((a, b) => a.pricePerMonth - b.pricePerMonth)
-  if (sortBy === 'price_desc') results.sort((a, b) => b.pricePerMonth - a.pricePerMonth)
+  if (sortBy === 'price_asc') results.sort((a: ListingSearchResult, b: ListingSearchResult) => a.pricePerMonth - b.pricePerMonth)
+  if (sortBy === 'price_desc') results.sort((a: ListingSearchResult, b: ListingSearchResult) => b.pricePerMonth - a.pricePerMonth)
   const start = (page - 1) * pageSize
   const paginated = results.slice(start, start + pageSize)
   return { data: paginated, total: results.length, page, pageSize, totalPages: Math.ceil(results.length / pageSize), hasMore: start + pageSize < results.length }

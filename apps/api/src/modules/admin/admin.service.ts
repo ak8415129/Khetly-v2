@@ -1,6 +1,8 @@
 import prisma from '../../lib/prisma'
 import { AppError } from '../../middleware/error.middleware'
 
+type RecentUser = { createdAt: Date }
+
 // ─── Platform-wide stats ──────────────────────────────────────────────────────
 export async function getPlatformStats() {
   const [
@@ -28,7 +30,7 @@ export async function getPlatformStats() {
   })
 
   const signupsByDay: Record<string, number> = {}
-  recentUsers.forEach((u) => {
+  recentUsers.forEach((u: RecentUser) => {
     const day = u.createdAt.toISOString().slice(0, 10)
     signupsByDay[day] = (signupsByDay[day] ?? 0) + 1
   })

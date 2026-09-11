@@ -2,6 +2,10 @@ import prisma from '../../lib/prisma'
 import { AppError } from '../../middleware/error.middleware'
 import { calcPlatformFee, addMonths } from '@khetly/utils'
 
+type RenterBooking = {
+  listing: { id: string; title: string; village: string; district: string; photos: string[]; pricePerMonth: number }
+}
+
 export async function createBooking(renterId: string, body: { listingId: string; startDate: string; durationMonths: number; selectedAddons: string[]; notes?: string }) {
   const listing = await prisma.landListing.findUnique({ where: { id: body.listingId }, include: { farmer: true } })
   if (!listing) throw new AppError('Listing not found', 404, 'NOT_FOUND')
@@ -23,7 +27,7 @@ export async function createBooking(renterId: string, body: { listingId: string;
 
 export async function getRenterBookings(renterId: string) {
   const bookings = await prisma.booking.findMany({ where: { renterId }, include: { listing: { select: { id: true, title: true, village: true, district: true, photos: true, pricePerMonth: true } } }, orderBy: { createdAt: 'desc' } })
-  return bookings.map((b) => ({
+  return bookings.map((b: RenterBooking) => ({
     ...b,
     listing: {
       ...b.listing,
