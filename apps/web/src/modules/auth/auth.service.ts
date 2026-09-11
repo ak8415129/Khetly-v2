@@ -1,14 +1,14 @@
 import { apiClient } from '@lib/api-client'
 import type { AuthUser, AuthTokens } from '@khetly/types'
 
-interface GoogleSignInResponse {
+export interface GoogleSignInResponse {
   user: AuthUser
   tokens: AuthTokens
   isNewUser: boolean
   needsProfileCompletion: boolean
 }
 
-interface CompleteProfileResponse {
+export interface CompleteProfileResponse {
   user: AuthUser
   tokens: AuthTokens
 }

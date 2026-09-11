@@ -38,7 +38,7 @@ export function Modal({
         <Dialog.Content
           className={cn(
             'fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50',
-            'bg-white rounded-2xl shadow-modal w-full p-6 animate-slide-up',
+            'bg-white rounded-2xl shadow-modal w-full max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain p-6 animate-slide-up',
             'focus:outline-none',
             sizeClasses[size]
           )}

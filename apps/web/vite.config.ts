@@ -109,7 +109,6 @@ export default defineConfig(({ mode }) => {
               '@radix-ui/react-checkbox',
               '@radix-ui/react-tabs',
               '@radix-ui/react-avatar',
-              '@radix-ui/react-progress',
               '@radix-ui/react-tooltip',
             ],
             'vendor-maps': ['leaflet', 'react-leaflet'],

@@ -54,6 +54,7 @@ export function ListingStatusBadge({ status }: { status: ListingStatus }) {
     ACTIVE: { label: 'Active', variant: 'success' },
     PAUSED: { label: 'Paused', variant: 'neutral' },
     ARCHIVED: { label: 'Archived', variant: 'default' },
+    REJECTED: { label: 'Rejected', variant: 'danger' },
   }
   const { label, variant } = map[status]
   return <Badge variant={variant}>{label}</Badge>

@@ -93,18 +93,27 @@ VITE_FIREBASE_APP_ID=1:123456789:web:abc123
 
 ## Part 4 — Update Database Schema
 
-Since we removed OTP and added new fields, you need to reset your database:
+For Supabase, the database must receive the committed Prisma migration before
+Google login can create the first user. Configure `DATABASE_URL` with the
+Supavisor transaction pooler (port `6543`) and `DIRECT_URL` with the Supavisor
+session pooler (port `5432`). If the password contains `@`, write it as `%40`
+in both URLs.
+
+Apply the migration with:
 
 ```bash
-cd khetly
+pnpm db:deploy
+```
+
+For a disposable local database only, use:
+
+```bash
 pnpm db:migrate
 ```
 
-If it complains about conflicting migrations (because the old OTP tables existed), run:
-```bash
-pnpm --filter api prisma migrate reset
-```
-Type `y` to confirm — this wipes your dev database and reapplies the new schema cleanly. (Fine for development — you have no real users yet.)
+Do not run `migrate reset` against Supabase; it deletes existing data. If the
+database already contains tables created outside Prisma, introspect it first
+and reconcile migrations rather than resetting it.
 
 ---
 

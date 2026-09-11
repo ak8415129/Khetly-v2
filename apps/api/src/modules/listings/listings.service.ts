@@ -2,6 +2,7 @@ import prisma from '../../lib/prisma'
 import { AppError } from '../../middleware/error.middleware'
 import { haversineKm } from '@khetly/utils'
 import type { RiskLevel, LandType, HarvestSeason } from '@khetly/types'
+import type { LogisticsOption, AddonType } from '@khetly/types'
 
 export interface SearchParams {
   lat?: number; lng?: number; radiusKm?: number
@@ -81,7 +82,7 @@ export async function createListing(farmerId: string, data: Record<string, unkno
       title: rest['title'] as string, description: (rest['description'] as string) ?? '',
       landType: rest['landType'] as LandType, plotSizeAcres: rest['plotSizeAcres'] as number,
       riskLevel: (rest['riskLevel'] as RiskLevel) ?? 'LOW', riskDescription: (rest['riskDescription'] as string) ?? '',
-      logistics: (rest['logistics'] as string[]) ?? [], addons: (rest['addons'] as string[]) ?? [],
+      logistics: (rest['logistics'] as LogisticsOption[]) ?? [], addons: (rest['addons'] as AddonType[]) ?? [],
       pricePerMonth: rest['pricePerMonth'] as number, minRentalMonths: (rest['minRentalMonths'] as number) ?? 1,
       // Goes to PENDING_REVIEW — admin must approve before it's searchable
       status: 'PENDING_REVIEW',

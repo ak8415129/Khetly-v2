@@ -28,7 +28,7 @@ export interface AuthTokens { accessToken: string; refreshToken: string; expires
 
 export interface Address {
   line1?: string; village: string; tehsil: string
-  district: string; state: string; pincode: string; geoPoint: GeoPoint
+  district: string; state: string; pincode: string; geoPoint?: GeoPoint
 }
 export interface FarmerProfile {
   id: string; userId: string; name: string; email: string; bio: string
@@ -55,6 +55,22 @@ export interface LandListing {
   rejectionReason?: string
   photos: string[]; videoUrl?: string; viewCount: number; bookingCount: number
   createdAt: string; updatedAt: string
+}
+
+export interface CreateListingPayload {
+  title: string
+  description?: string
+  landType: LandType
+  soilType?: SoilType
+  plotSizeAcres: number
+  address: Address
+  cropDetails: CropDetails
+  riskLevel: RiskLevel
+  riskDescription: string
+  logistics: LogisticsOption[]
+  addons: AddonType[]
+  pricePerMonth: number
+  minRentalMonths: number
 }
 export interface Booking {
   id: string; listingId: string

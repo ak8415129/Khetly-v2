@@ -55,7 +55,10 @@ export async function remove(req: Request, res: Response, next: NextFunction) {
 export async function myListings(req: Request, res: Response, next: NextFunction) {
   try {
     const farmer = await prisma.farmerProfile.findUnique({ where: { userId: req.userId } })
-    if (!farmer) return res.json({ success: true, data: [] })
+    if (!farmer) {
+      res.json({ success: true, data: [] })
+      return
+    }
     const data = await svc.getFarmerListings(farmer.id)
     res.json({ success: true, data })
   } catch (err) { next(err) }

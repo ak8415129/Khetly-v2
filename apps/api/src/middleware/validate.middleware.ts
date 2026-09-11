@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express'
-import { type ZodSchema } from 'zod'
+import { type ZodIssue, type ZodSchema } from 'zod'
 
 interface ValidateSchemas { body?: ZodSchema; query?: ZodSchema; params?: ZodSchema }
 
@@ -10,13 +10,13 @@ export function validate(schemas: ValidateSchemas) {
       if (!schema) continue
       const result = schema.safeParse(req[key as keyof Request])
       if (!result.success) {
-        result.error.issues.forEach((issue) => {
+        result.error.issues.forEach((issue: ZodIssue) => {
           const path = issue.path.join('.') || key
           if (!errors[path]) errors[path] = []
           errors[path]!.push(issue.message)
         })
       } else {
-        ;(req as Record<string, unknown>)[key] = result.data
+        ;(req as unknown as Record<string, unknown>)[key] = result.data
       }
     }
     if (Object.keys(errors).length > 0) {

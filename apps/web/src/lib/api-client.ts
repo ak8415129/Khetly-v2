@@ -1,16 +1,16 @@
-import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
+import axios, { type AxiosError, type AxiosRequestConfig, type InternalAxiosRequestConfig } from 'axios'
 import { useAuthStore } from '@modules/auth/auth.store'
 
 const BASE_URL = `${import.meta.env['VITE_API_URL'] ?? 'http://localhost:4000'}/v1`
 
-export const apiClient = axios.create({
+const axiosClient = axios.create({
   baseURL: BASE_URL,
   timeout: 30_000,
   headers: { 'Content-Type': 'application/json' },
 })
 
 // ─── Request — attach Bearer token ───────────────────────────────────────────
-apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+axiosClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   let token = useAuthStore.getState().tokens?.accessToken
 
   if (!token) {
@@ -46,7 +46,7 @@ function processQueue(error: unknown, token: string | null) {
   failedQueue = []
 }
 
-apiClient.interceptors.response.use(
+axiosClient.interceptors.response.use(
   // Unwrap { success: true, data: <payload> } → return <payload> directly
   (response) => {
     const body = response.data
@@ -85,7 +85,7 @@ apiClient.interceptors.response.use(
         failedQueue.push({ resolve, reject })
       }).then((token) => {
         originalRequest.headers['Authorization'] = `Bearer ${token}`
-        return apiClient(originalRequest)
+        return axiosClient(originalRequest)
       }).catch((err) => Promise.reject(err))
     }
 
@@ -119,7 +119,7 @@ apiClient.interceptors.response.use(
 
       // Retry the original request
       originalRequest.headers['Authorization'] = `Bearer ${newTokens.accessToken}`
-      return apiClient(originalRequest)
+      return axiosClient(originalRequest)
 
     } catch (refreshError) {
       processQueue(refreshError, null)
@@ -149,3 +149,12 @@ function normaliseError(error: AxiosError | Error): Error & { code?: string; sta
   out.status = error.response?.status
   return out
 }
+
+interface UnwrappedApiClient {
+  get<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T>
+  post<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T>
+  patch<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T>
+  delete<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T>
+}
+
+export const apiClient = axiosClient as unknown as UnwrappedApiClient

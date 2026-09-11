@@ -33,6 +33,7 @@ const AdminDashboard = lazy(() => import('@pages/admin/AdminDashboard'))
 const AdminListingsPage = lazy(() => import('@pages/admin/AdminListingsPage'))
 const AdminFarmersPage = lazy(() => import('@pages/admin/AdminFarmersPage'))
 const AdminUsersPage = lazy(() => import('@pages/admin/AdminUsersPage'))
+const AdminBookingsPage = lazy(() => import('@pages/admin/AdminBookingsPage'))
 
 export default function App() {
   return (
@@ -86,7 +87,7 @@ export default function App() {
               <Route path="/admin/listings" element={<AdminListingsPage />} />
               <Route path="/admin/farmers" element={<AdminFarmersPage />} />
               <Route path="/admin/users" element={<AdminUsersPage />} />
-              <Route path="/admin/bookings" element={<div className="p-4 text-gray-500">Bookings oversight — coming soon</div>} />
+              <Route path="/admin/bookings" element={<AdminBookingsPage />} />
               <Route path="/admin/audit-log" element={<div className="p-4 text-gray-500">Audit log — coming soon</div>} />
             </Route>
           </Route>

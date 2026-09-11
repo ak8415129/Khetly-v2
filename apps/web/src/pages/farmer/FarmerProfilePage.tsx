@@ -85,7 +85,7 @@ export default function FarmerProfilePage() {
               {profile && <VerifiedBadge status={profile.verificationStatus} />}
             </div>
             <p className="text-sm text-gray-500">{user?.email}</p>
-            {profile?.rating > 0 && (
+            {profile && profile.rating > 0 && (
               <div className="flex items-center gap-1 mt-1 text-amber-600 text-sm">
                 <Star className="w-3.5 h-3.5 fill-amber-400 stroke-amber-400" />
                 <span className="font-medium">{profile.rating.toFixed(1)}</span>
