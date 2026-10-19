@@ -1,0 +1,18 @@
+// ── PASTE THIS AT THE END OF apps/api/prisma/schema.prisma ──
+//
+// Prisma can't natively type a `vector` column, so it's marked Unsupported.
+// All reads/writes go through raw SQL in rag.service.ts and seed-knowledge-base.ts —
+// this model exists mainly so `prisma db pull` / introspection stays accurate,
+// and so the table shows up in `prisma studio`.
+
+model KnowledgeChunk {
+  id        String                 @id
+  title     String
+  content   String
+  category  String                 @default("general")
+  embedding Unsupported("vector")?
+  createdAt DateTime               @default(now())
+  updatedAt DateTime               @updatedAt
+
+  @@map("knowledge_chunks")
+}

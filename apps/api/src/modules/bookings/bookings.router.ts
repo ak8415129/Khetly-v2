@@ -7,3 +7,6 @@ bookingsRouter.use(requireAuth)
 bookingsRouter.post('/', ctrl.create)
 bookingsRouter.get('/mine', ctrl.mine)
 bookingsRouter.patch('/:id/cancel', ctrl.cancel)
+bookingsRouter.patch('/:id/dispute', ctrl.dispute)
+bookingsRouter.post('/:id/review', ctrl.review)
+

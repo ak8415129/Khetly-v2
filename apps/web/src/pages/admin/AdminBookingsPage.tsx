@@ -28,49 +28,65 @@ interface AdminBookingsResponse {
   totalPages: number
 }
 
-type BookingView = 'active' | 'completed' | 'all'
+type BookingView = 'all' | 'enquiries' | 'active' | 'completed' | 'disputed'
 
 export default function AdminBookingsPage() {
-  const [view, setView] = useState<BookingView>('active')
+  const [view, setView] = useState<BookingView>('all')
   const { data, isLoading, isError } = useQuery({
     queryKey: ['admin', 'bookings'],
     queryFn: () => adminService.allBookings({ page: 1 }) as unknown as Promise<AdminBookingsResponse>,
   })
 
   const bookings = data?.data ?? []
+  const enquiryBookings = useMemo(
+    () => bookings.filter((b) => b.status === 'ENQUIRY'),
+    [bookings]
+  )
   const activeBookings = useMemo(
-    () => bookings.filter((booking) => ['CONFIRMED', 'ACTIVE'].includes(booking.status)),
+    () => bookings.filter((b) => ['CONFIRMED', 'ACTIVE'].includes(b.status)),
     [bookings]
   )
   const completedBookings = useMemo(
-    () => bookings.filter((booking) => booking.status === 'COMPLETED'),
+    () => bookings.filter((b) => b.status === 'COMPLETED'),
     [bookings]
   )
-  const visibleBookings = view === 'active'
-    ? activeBookings
-    : view === 'completed'
-      ? completedBookings
-      : bookings
+  const disputedBookings = useMemo(
+    () => bookings.filter((b) => ['DISPUTED', 'CANCELLED'].includes(b.status)),
+    [bookings]
+  )
+
+  const visibleBookings = useMemo(() => {
+    switch (view) {
+      case 'enquiries': return enquiryBookings
+      case 'active': return activeBookings
+      case 'completed': return completedBookings
+      case 'disputed': return disputedBookings
+      default: return bookings
+    }
+  }, [view, enquiryBookings, activeBookings, completedBookings, disputedBookings, bookings])
 
   return (
     <div className="space-y-6">
       <div>
         <p className="text-xs font-medium uppercase tracking-[0.16em] text-brand-600">Platform oversight</p>
         <h1 className="mt-1 text-2xl font-medium text-gray-900">Bookings</h1>
-        <p className="mt-1 text-sm text-gray-500">Monitor active rentals and completed transactions.</p>
+        <p className="mt-1 text-sm text-gray-500">Monitor all rental requests, active contracts, disputes, and completed bookings.</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <SummaryCard icon={<CalendarDays className="h-4 w-4" />} label="All bookings" value={data?.total ?? 0} />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <SummaryCard icon={<CalendarDays className="h-4 w-4" />} label="All bookings" value={data?.total ?? bookings.length} />
+        <SummaryCard icon={<Users className="h-4 w-4" />} label="Enquiries" value={enquiryBookings.length} tone="blue" />
         <SummaryCard icon={<Users className="h-4 w-4" />} label="Active" value={activeBookings.length} tone="green" />
         <SummaryCard icon={<IndianRupee className="h-4 w-4" />} label="Completed" value={completedBookings.length} tone="amber" />
       </div>
 
       <div className="flex flex-wrap gap-2 border-b border-gray-100 pb-3">
         {[
+          { value: 'all' as const, label: `All (${bookings.length})` },
+          { value: 'enquiries' as const, label: `Enquiries (${enquiryBookings.length})` },
           { value: 'active' as const, label: `Active (${activeBookings.length})` },
           { value: 'completed' as const, label: `Completed (${completedBookings.length})` },
-          { value: 'all' as const, label: `All (${data?.total ?? 0})` },
+          { value: 'disputed' as const, label: `Disputed/Cancelled (${disputedBookings.length})` },
         ].map((tab) => (
           <button
             key={tab.value}
@@ -90,7 +106,7 @@ export default function AdminBookingsPage() {
       ) : visibleBookings.length === 0 ? (
         <EmptyState
           icon="📋"
-          title={view === 'active' ? 'No active bookings' : view === 'completed' ? 'No completed bookings' : 'No bookings yet'}
+          title={`No ${view === 'all' ? '' : view} bookings`}
           description="Bookings will appear here when renters enquire about a listing."
         />
       ) : (
@@ -126,7 +142,7 @@ function BookingRow({ booking }: { booking: AdminBooking }) {
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-sm font-medium text-gray-900">{booking.listing.title}</h2>
+            <h2 className="text-sm font-medium text-gray-900">{booking.listing?.title ?? 'Listing'}</h2>
             <BookingStatusBadge status={booking.status} />
           </div>
           <p className="mt-1 flex items-center gap-1 text-xs text-gray-500">
@@ -141,8 +157,8 @@ function BookingRow({ booking }: { booking: AdminBooking }) {
       </div>
 
       <div className="grid grid-cols-1 gap-3 border-t border-gray-100 pt-3 text-sm sm:grid-cols-3">
-        <Person label="Renter" name={booking.renter.name || 'Unnamed renter'} email={booking.renter.email} />
-        <Person label="Farmer" name={booking.farmer.user.name || 'Unnamed farmer'} email={booking.farmer.user.email} />
+        <Person label="Renter" name={booking.renter?.name || 'Unnamed renter'} email={booking.renter?.email ?? ''} />
+        <Person label="Farmer" name={booking.farmer?.user?.name || 'Unnamed farmer'} email={booking.farmer?.user?.email ?? ''} />
         <div>
           <p className="text-xs text-gray-500">Platform fee</p>
           <p className="mt-1 font-medium text-gray-800">{formatINR(booking.platformFee)}</p>
@@ -161,4 +177,4 @@ function Person({ label, name, email }: { label: string; name: string; email: st
       <p className="truncate text-xs text-gray-400">{email}</p>
     </div>
   )
-}
+}

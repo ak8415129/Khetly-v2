@@ -20,6 +20,8 @@ const envSchema = z.object({
   MAX_FILE_SIZE_MB: z.coerce.number().default(10),
 
   ANTHROPIC_API_KEY: z.string().optional(),
+  GROQ_API_KEY: z.string().optional(),
+  GROQ_MODEL: z.string().default('llama-3.3-70b-versatile'),
   FRONTEND_URL: z.string().default('http://localhost:3000'),
 
   // First admin account — auto-promoted on first login (setup convenience)

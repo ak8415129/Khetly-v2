@@ -10,3 +10,10 @@ export async function mine(req: Request, res: Response, next: NextFunction) {
 export async function cancel(req: Request, res: Response, next: NextFunction) {
   try { res.json({ success: true, data: await svc.cancelBooking(req.params['id']!, req.userId) }) } catch (err) { next(err) }
 }
+export async function dispute(req: Request, res: Response, next: NextFunction) {
+  try { res.json({ success: true, data: await svc.raiseDispute(req.params['id']!, req.userId, req.body.reason) }) } catch (err) { next(err) }
+}
+export async function review(req: Request, res: Response, next: NextFunction) {
+  try { res.status(201).json({ success: true, data: await svc.createBookingReview(req.params['id']!, req.userId, req.body) }) } catch (err) { next(err) }
+}
+
