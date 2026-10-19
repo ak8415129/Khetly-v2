@@ -11,8 +11,19 @@ export async function getStats(req: Request, res: Response, next: NextFunction) 
   try { res.json({ success: true, data: await svc.getFarmerStats(req.userId) }) } catch (err) { next(err) }
 }
 export async function getBookings(req: Request, res: Response, next: NextFunction) {
-  try { res.json({ success: true, data: await svc.getFarmerBookings(req.userId) }) } catch (err) { next(err) }
+  try {
+    const limit = req.query['limit'] ? Number(req.query['limit']) : undefined
+    res.json({ success: true, data: await svc.getFarmerBookings(req.userId, limit) })
+  } catch (err) { next(err) }
 }
 export async function updateBookingStatus(req: Request, res: Response, next: NextFunction) {
   try { res.json({ success: true, data: await svc.updateBookingStatus(req.params['bookingId']!, req.userId, req.body.status) }) } catch (err) { next(err) }
 }
+export async function getMyListings(req: Request, res: Response, next: NextFunction) {
+  try {
+    const limit = req.query['limit'] ? Number(req.query['limit']) : undefined
+    res.json({ success: true, data: await svc.getFarmerListings(req.userId, limit) })
+  } catch (err) { next(err) }
+}
+
+
